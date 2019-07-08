@@ -7,9 +7,9 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 from local_tools import *
 from dist_tools import *
-from worker_base_optim import WorkerBaseOptim
+from worker_base import WorkerBase
 
-class WorkerDistOptim(WorkerBaseOptim):
+class WorkerDistOptim(WorkerBase):
     def __init__(self, args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a):
         '''class for distribured optimization'''
         super().__init__(args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a)
@@ -28,7 +28,7 @@ class WorkerDistOptim(WorkerBaseOptim):
             self.group_dict[i] = torch.distributed.new_group(_group)
         print('Create local groups in the group dictonary')
         
-        # barrier Test (use my barrier should be safer :) I am so smart!!~)
+        # barrier test
         dist_print(args, "--[Barrier] Now entering barrier test!!")
         dist_dumb_barrier(args, self.device)
         dist_print(args, "--[Done] Passed Barrier Test!!\n")
@@ -39,7 +39,7 @@ class WorkerDistOptim(WorkerBaseOptim):
             self.test_dataset, self.test_loader = get_data_loader(args)
         ''' debugging: print('Sampler Test', self.train_sampler == self.train_loader.sampler) '''
 
-        # calculate loaders' sizes
+        # obtain loaders' sizes
         self.train_dataset_size = len(self.train_dataset)
         self.train_loader_size = len(self.train_loader)
         self.test_dataset_size = len(self.test_dataset)
@@ -87,6 +87,7 @@ class WorkerDistOptim(WorkerBaseOptim):
             if worker[1].item() < l_lowest_loss:
                 l_lowest_loss = worker[1].item()
                 l_best_worker = int(worker[0].item())
+        assert self.args.cur_swarm* self.args.num_gpus <= l_best_worker and l_best_worker < (self.args.cur_swarm+1)* self.args.num_gpus
 
         if self.my_rank == l_best_worker:
             copy_model_params(self.dist_params_tensor, self.model)
@@ -111,6 +112,7 @@ class WorkerDistOptim(WorkerBaseOptim):
                 if worker[1].item() < g_lowest_loss:
                     g_lowest_loss = worker[1].item()
                     g_best_worker = int(worker[0].item())
+            assert 0 <= g_best_worker and  g_best_worker < self.args.num_swarms* self.args.num_gpus
             self.world_best_worker = g_best_worker
             if self.my_rank ==  g_best_worker:
                 copy_model_params(self.dist_params_tensor, self.model)

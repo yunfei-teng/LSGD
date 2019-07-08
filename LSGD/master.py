@@ -8,7 +8,7 @@ import torch.distributed as dist
 
 from local_tools import *
 from dist_tools import *
-from master_base_optim import MasterBaseOptim
+from master_base import MasterBase
 
 def listen(lst_rank, p_comm_queue, g_comm, world_size, world_best_worker, world_least_loss, begin_time, period, t_signal):
     request = torch.FloatTensor([0])
@@ -46,7 +46,7 @@ def listen(lst_rank, p_comm_queue, g_comm, world_size, world_best_worker, world_
     time.sleep(3) # wait 3 seconds for GPU processors to ternimate
     
 
-class Master(MasterBaseOptim):
+class Master(MasterBase):
     def __init__(self, args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a):
         ''' This class defined the behavior of Master '''
         super().__init__(args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a)
@@ -71,7 +71,7 @@ class Master(MasterBaseOptim):
         time.sleep(3) # wait 3 seconds for GPU processors to ternimate
         dist.barrier()
 
-class Center(MasterBaseOptim):
+class Center(MasterBase):
     def __init__(self, args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a):
         ''' This class defined the behavior of Center '''
         super().__init__(args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a)

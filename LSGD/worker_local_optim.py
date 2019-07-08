@@ -5,9 +5,9 @@ import torch.optim as optim
 import torch.distributed as dist
 from local_tools import *
 from dist_tools import *
-from worker_base_optim import WorkerBaseOptim
+from worker_base import WorkerBase
 
-class WorkerLocalOptim(WorkerBaseOptim):
+class WorkerLocalOptim(WorkerBase):
     def __init__(self, args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a):
         '''class for local optimization'''
         super().__init__(args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a)

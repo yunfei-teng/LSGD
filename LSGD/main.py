@@ -58,10 +58,10 @@ if __name__ == "__main__":
 
     # spawn sub-processes for distributed training
     main_program_start = time.time()
-    num_process = args.num_gpus + 1
+    num_processes = args.num_gpus + 1
     if args.cur_swarm == 0:
-        num_process = args.num_gpus+2
-    mp.spawn(fn=dist_run, args=(args, shared_tensor, shared_lock, shared_queue_r, shared_queue_a), nprocs=num_process)
+        num_processes = args.num_gpus+2
+    mp.spawn(fn=dist_run, args=(args, shared_tensor, shared_lock, shared_queue_r, shared_queue_a), nprocs=num_processes)
     
     # Tik Tok: https://www.tutorialspoint.com/python/time_clock.htm
     main_program_finish = time.time()

@@ -5,7 +5,7 @@ import models
 from local_tools import *
 from dist_tools import *
 
-class WorkerBaseOptim():
+class WorkerBase():
     def __init__(self, args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a):
         ''' This is the base class for master and worker in distributed training '''
         # initialization
