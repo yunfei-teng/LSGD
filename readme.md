@@ -1,5 +1,5 @@
 # LSGD
-This is the code repository for paper LSGD (https://arxiv.org/abs/1905.10395).
+This is the code repository for paper LSGD along with explanation (https://yunfei-teng.github.io/LSGD/)
 
 ## Requirements
 1. Install PyTorch from official website (https://pytorch.org/). This is one of the most popular deep learning tools.

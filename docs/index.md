@@ -12,5 +12,8 @@ follow the local training or distributed training scheme.
 
 Each Node/Cluster/DevBox is usually equipped with 4 GPUs (workers). In the code we call all GPUs (workers) Node/Cluster/DevBox as a group.
 
-## Batch Normaliztion
+## Discussion
+
+#### Batch Normaliztion
+
 One dilemma for distributed training is to deal with running mean and running variance of [batch normalization](https://arxiv.org/abs/1502.03167). Based on our knowledge, there is no perfect solution to synchronize running mean and running variance especially for asynchronous communication so far. Usually, when synchronizing we can ignore running mean and running variance so that each model (worker) keeps their own statistics. In our implementation, we average both running mean and running variance of all workers for every commumication period (As a side note, for PyTorch 1.0 version, synchronizing the empty tensors will cause an error, so make sure to comment out the parts of synchronizing the buffers).
