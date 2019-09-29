@@ -2,7 +2,7 @@
 This page is mainly used for explaining the codes of distributed training library of LSGD.
 
 The general architecture is the following:
-![](./dist_arch)
+![](./dist_arch.png)
 
 At the beginning of each iteration, the local worker sends out a request to its local server and
 then the local server passes on the worker’s request to the global server. The global server checks the
