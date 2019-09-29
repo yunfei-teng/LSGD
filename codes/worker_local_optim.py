@@ -1,5 +1,6 @@
 import torch
 import torch.optim as optim
+import torch.nn.functional as F
 # import optimizers
 
 import torch.distributed as dist
@@ -9,12 +10,11 @@ from worker_base import WorkerBase
 
 class WorkerLocalOptim(WorkerBase):
     def __init__(self, args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a):
-        '''class for local optimization'''
+        ''' the class for local training and testing '''
         super().__init__(args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a)
         self.model.train()
         # define optimizer with learning rate augmentation
-        self.cur_lr = args.lr
-        
+        self.cur_lr = args.lr  
         self.local_optimizer = optim.SGD(self.model.parameters(), lr = self.cur_lr, 
                                          weight_decay = args.wd, momentum = args.mom, 
                                          nesterov = (args.mom>0) )
@@ -24,6 +24,7 @@ class WorkerLocalOptim(WorkerBase):
         self.local_train_loss, self.local_train_error = float('inf'), float('inf')
 
     def local_batch_train(self, data, target):
+        ''' train with a batch of training data points '''
         # forward
         data = data.to(self.device, non_blocking=True)
         target = target.to(self.device, non_blocking=True)
@@ -44,17 +45,18 @@ class WorkerLocalOptim(WorkerBase):
         return self.avg_loss.running_avg, self.avg_err.running_avg
 
     def local_center_test(self):
+        ''' test center variable (model) with testing dataset '''
         loss, correct = 0, 0
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(self.test_loader):
                 data = data.to(self.device, non_blocking=True)
                 target = target.to(self.device, non_blocking=True)
                 output = self.model_center(data)
-                loss += self.criterion(output, target).item()
+                loss += F.cross_entropy(output, target, reduction='sum').item()
                 _, predicted = torch.max(output.data, 1)
                 correct += (predicted.to(self.device) == target).sum().item()
-        loss = loss/ self.test_loader_size
+        loss = loss/ len(self.test_loader.dataset)
         error = (1 - correct/ self.test_dataset_size)* 100
-        if self.my_rank % self.args.num_gpus == 0:
-            print("{rank:d} [CENTER] TEST LOSS IS {loss:.3f} and ERROR IS {err:.2f}%".format(rank=self.my_rank, loss=loss, err=error))
+        # if self.my_rank % self.args.num_gpus == 0:
+        print("[{rank:d} CENTER] TEST LOSS IS {loss:.3f} and ERROR IS {err:.2f}%".format(rank=self.my_rank, loss=loss, err=error))
         return loss, error

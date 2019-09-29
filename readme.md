@@ -1,10 +1,10 @@
 # LSGD
-This is the repository for paper LSGD (https://arxiv.org/abs/1905.10395)
+This is the code repository for paper LSGD (https://arxiv.org/abs/1905.10395).
 
 ## Requirements
-1. Install PyTorch from official website (https://pytorch.org/)
+1. Install PyTorch from official website (https://pytorch.org/). This is one of the most popular deep learning tools.
 
-2. install termcolor by ```pip install termcolor```
+2. install termcolor by ```pip install termcolor```. This colorizes the output from terminal.
 
 ## Instruction
 1. Assume you have **n** GPU nodes for distributed training. On the first GPU node, type command ```ifconfig``` in terminal to check its IP address;

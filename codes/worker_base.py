@@ -12,7 +12,7 @@ class WorkerBase():
         assert torch.cuda.is_available(), "distributed training requires GPU on all machines"
         device = torch.device('cuda:%d'%(cur_worker%torch.cuda.device_count()))
 
-        # cuda options
+        # cuda randomness options
         '''
         torch.manual_seed(args.cpu_seed)
         torch.cuda.set_device(cur_worker%torch.cuda.device_count()) # depreciated now!

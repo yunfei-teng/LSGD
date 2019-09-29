@@ -8,19 +8,20 @@ import warnings
 import torch.backends.cudnn as cudnn
 
 class Options():
-    """This class defines argsions"""
-    
+    ''' This class defines argsions
+        adapted from: https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/tree/master/options
+    '''
     def __init__(self):
         self.initialized = False
 
     def initialize(self, parser):
-        '''set up arguments''' 
+        ''' set up arguments ''' 
         parser.add_argument('--resume', action='store_true')
         parser.add_argument('--exp_name', type = str, default='LSGD')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints')
 
-        parser.add_argument('--cur_swarm', default=0, type=int)
-        parser.add_argument('--num_swarms', default=1, type=int)
+        parser.add_argument('--cur_group', default=0, type=int)
+        parser.add_argument('--num_groups', default=1, type=int)
         parser.add_argument('--datadir', type = str, default='./dataset', help='data')
         parser.add_argument('--dataset', type = str, default='mnist', help='dataset')
         parser.add_argument('--model', type = str, default='lenet')
@@ -72,7 +73,7 @@ class Options():
         return parser
 
     def get_argsions(self):
-        """ get argsions from parser"""
+        ''' get argsions from parser '''
         if not self.initialized:  # check if it has been initialized
             parser = argparse.ArgumentParser(description='Asyncrhonous toy example')
             parser = self.initialize(parser)
@@ -82,10 +83,10 @@ class Options():
         return parser.parse_args()
 
     def print_argsions(self, args):
-        """Print and save argsions
-        It will print both current argsions and default values(if different).
-        It will save argsions into a text file / [checkpoints_dir] / args.txt
-        """
+        ''' Print and save argsions
+            It will print both current argsions and default values(if different).
+            It will save argsions into a text file / [checkpoints_dir] / args.txt
+        ''' 
         message = str(datetime.datetime.now())
         message += '\n----------------- Options ---------------\n'
         for k, v in sorted(vars(args).items()):
@@ -106,7 +107,7 @@ class Options():
             args_file.write('\n')
     
     def parse(self):
-        """Parse our argsions, create checkpoints directory suffix, and set up gpu device."""
+        ''' Parse our argsions, create checkpoints directory suffix, and set up gpu device. '''
         args = self.get_argsions()
 
         # process args.suffix

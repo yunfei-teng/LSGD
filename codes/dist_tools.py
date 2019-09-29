@@ -3,13 +3,12 @@ import torch
 import torch.distributed as dist
 
 def set_global_rank(args, cur_worker):
-    '''return global rank base on the index of current swarm 
-    and the index of current work inside the swarm'''
-    global_rank = cur_worker + args.cur_swarm* args.num_gpus
+    '''return global rank base on the index of current group and the index of current work inside the group'''
+    global_rank = cur_worker + args.cur_group* args.num_gpus
     return global_rank
 
 def dist_print(args, text2print):
-    '''only one of the workers (processes) in the same swarm will print out information'''
+    '''print out information'''
     if dist.get_rank() % args.num_gpus == 0:
         print(text2print)
 
@@ -20,7 +19,7 @@ def dist_dumb_barrier(args, device):
     assert dumb_tensor.item() == args.world_size, 'NCCL was not intialized properly'
 
 def ravel_model_params(model, is_grad, device):
-    ''' squash model parameters or gradients into a flat tensor (https://github.com/ucla-labx/distbelief)'''
+    '''squash model parameters or gradients into a flat tensor (https://github.com/ucla-labx/distbelief)'''
     numel = 0
     for parameter in model.parameters():
         numel += parameter.data.numel()
@@ -37,10 +36,12 @@ def ravel_model_params(model, is_grad, device):
     return flat_tensor
 
 def ravel_model_buffers(model, is_grad, device):
-    ''' squash model buffers or gradients into a flat tensor '''
+    '''squash model buffers or gradients into a flat tensor'''
     numel = 0
     for parameter in model.buffers():
         numel += parameter.data.numel()
+    if numel == 0:
+        return None
     flat_tensor = torch.zeros(numel).to(device)
     current_index = 0
     for parameter in model.buffers():
@@ -54,7 +55,7 @@ def ravel_model_buffers(model, is_grad, device):
     return flat_tensor
 
 def mix_model_params(model, flat_tensor, tensor_weight=1):
-    ''' squash model parameters or gradients into a flat tensor '''
+    '''squash model parameters or gradients into the flat tensor'''
     current_index = 0
     for parameter in model.parameters():
         numel = parameter.data.numel()
@@ -62,25 +63,23 @@ def mix_model_params(model, flat_tensor, tensor_weight=1):
         current_index += numel 
 
 def copy_model_params(flat_tensor, model):
-    ''' copy model parameters into flat tensor '''
+    '''copy model parameters into the flat tensor'''
     current_index = 0 
     for parameter in model.parameters():
         numel = parameter.data.numel()
-        size = parameter.data.size()
         flat_tensor[current_index:current_index+numel].data.copy_(parameter.data.view(-1))
         current_index += numel
 
 def copy_model_buffers(flat_tensor, model):
-    ''' copy model parameters into flat tensor '''
+    '''copy model parameters into the flat tensor'''
     current_index = 0
     for parameter in model.buffers():
         numel = parameter.data.numel()
-        size = parameter.data.size()
         flat_tensor[current_index:current_index+numel].data.copy_(parameter.data.view(-1))
         current_index += numel
 
 def add_model_grads(flat_tensor, model):
-    ''' add model parameters into flat tensor '''
+    '''add grads of model parameters into the flat tensor'''
     current_index = 0 
     for parameter in model.parameters():
         numel = parameter.grad.data.numel()
@@ -89,7 +88,7 @@ def add_model_grads(flat_tensor, model):
         current_index += numel
 
 def unravel_model_params(model, flat_tensor, is_grad, operation, model_weight=1):
-    ''' assign flat_tensor to model's parameters '''
+    '''assign the flat tensor to model's parameters'''
     assert model_weight <=1 and model_weight >=0, 'weight coefficient should be in the range of [0,1]'
     current_index = 0
     if is_grad:   
@@ -122,7 +121,7 @@ def unravel_model_params(model, flat_tensor, is_grad, operation, model_weight=1)
             current_index += numel 
 
 def unravel_model_buffers(model, flat_tensor, is_grad, operation, model_weight=1):
-    ''' assign flat_tensor to model's buffers '''
+    '''assign the flat tensor to model's buffers'''
     assert model_weight <=1 and model_weight >=0, 'weight coefficient should be in the range of [0,1]'
     current_index = 0
     if is_grad:  
