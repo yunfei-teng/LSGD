@@ -45,7 +45,7 @@ def get_data_loader(args):
     '''return train and test dataloader'''
     # [normalization]
     normalize = None
-    if args.dataset.lower() == 'cifar' or args.dataset.lower() == 'cifar10' or args.dataset.lower() == 'fake_cifar':
+    if args.dataset.lower() == 'cifar' or args.dataset.lower() == 'cifar10':
         args.dataset = 'CIFAR10'
         # https://github.com/kuangliu/pytorch-cifar/blob/master/main.py
         normalize = transforms.Normalize((0.4914, 0.4822, 0.4465),
