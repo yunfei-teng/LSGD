@@ -1,6 +1,8 @@
 # ignore folders
 __pycache__
+tests
 
 # ignore files
 *.md~
 *.sh~
+dist_test.sh
