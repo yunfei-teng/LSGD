@@ -34,6 +34,7 @@ class WorkerBase():
         self.my_gpu  = cur_worker
         self.my_rank = set_global_rank(args, cur_worker)
         self.world_best_worker = 0
+        self.group_best_worker = 0
 
         # create model and gradients
         self.model = get_model(args)
@@ -45,7 +46,8 @@ class WorkerBase():
         self.model_center.eval()
         self.criterion = torch.nn.CrossEntropyLoss().to(self.device)
 
-        if self.my_rank == 0: 
+        if self.my_rank % args.num_gpus == 0:
+            print('\n=== Model Information ===')
             print('-- The model has following buffers --')
             for name, buf in self.model.named_buffers():
                 print(name)

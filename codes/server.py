@@ -16,7 +16,7 @@ class LocalServer(ServerBase):
         super().__init__(args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a)
 
     def run(self):
-        print("== Running MAIN FUCTION as [Group %d: Local Server] =="%(self.args.cur_group))
+        print("== [Local Server %d:] is running =="%(self.args.cur_group))
         request = torch.FloatTensor([0])
         answer  = torch.CharTensor([0])
         is_terminiating = False
@@ -82,7 +82,7 @@ class GlobalServer(ServerBase):
         super().__init__(args, cur_worker, shared_tensor, shared_lock, shared_queue_r, shared_queue_a)
 
     def run(self):
-        print("== Running MAIN FUCTION as [Global Server] ==")
+        print("== [Global Server] is running ==")
         iter_counter_queue = Queue()
         iter_counter_queue.put(0)
         g_comm = self.args.num_groups* self.args.num_gpus* self.args.l_comm

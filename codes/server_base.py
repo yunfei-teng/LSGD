@@ -1,3 +1,4 @@
+import datetime
 import torch
 import torch.distributed as dist
 
@@ -14,15 +15,15 @@ class ServerBase():
         self.shared_queue_a = shared_queue_a
 
         # create global server and local server 
+        timeout = datetime.timedelta(seconds=7200)
         if args.cur_group == 0 and cur_worker == args.num_gpus + 1: # global server 
-            dist.init_process_group(rank=0, world_size=args.num_groups+1, backend='gloo', init_method=args.dist_url_msr)
+            dist.init_process_group(rank=0, world_size=args.num_groups+1, backend='gloo', timeout=timeout, init_method=args.dist_url_msr)
         else: # local server
-            dist.init_process_group(rank=args.cur_group+1, world_size=args.num_groups+1, backend='gloo', init_method=args.dist_url_msr)
+            dist.init_process_group(rank=args.cur_group+1, world_size=args.num_groups+1, backend='gloo', timeout=timeout, init_method=args.dist_url_msr)
 
         # test initialization
         self.g_tensor = torch.zeros(1)
         dist.all_reduce(self.g_tensor)
-        print('Gloo backend is successfully initialized')
 
         # define variables
         self.my_rank = dist.get_rank()

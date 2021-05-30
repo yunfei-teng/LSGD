@@ -87,6 +87,15 @@ def add_model_grads(flat_tensor, model):
         flat_tensor[current_index:current_index+numel].add_(parameter.grad.data.view(-1))
         current_index += numel
 
+def update_model_grads(p, flat_tensor, model):
+    current_index = 0 
+    for parameter in model.parameters():
+        numel = parameter.grad.data.numel()
+        size = parameter.grad.data.size()
+        diff = parameter.data - flat_tensor[current_index:current_index+numel].view(size)
+        parameter.grad.data.add_(p, diff)
+        current_index += numel
+
 def unravel_model_params(model, flat_tensor, is_grad, operation, model_weight=1):
     '''assign the flat tensor to model's parameters'''
     assert model_weight <=1 and model_weight >=0, 'weight coefficient should be in the range of [0,1]'

@@ -1,8 +1,8 @@
 import time
-from termcolor import colored
 
 import torch
 import torch.multiprocessing as mp
+import torchvision.datasets as dsets
 
 from options import Options
 from worker import Worker
@@ -25,6 +25,10 @@ if __name__ == "__main__":
     # https://pytorch.org/docs/master/notes/multiprocessing.html
     # https://pytorch.org/docs/stable/distributed.html
     args = Options().parse()
+    if not args.dataset == 'ImageNet':
+        dsets.__dict__[args.dataset](root=args.datadir, train=True, download=True)
+        dsets.__dict__[args.dataset](root=args.datadir, train=False, download=True)
+    
     try:
         mp.set_start_method('spawn')
     except RuntimeError:
@@ -68,4 +72,4 @@ if __name__ == "__main__":
     # Tik Tok: https://www.tutorialspoint.com/python/time_clock.htm
     main_program_finish = time.time()
     main_program_time = main_program_finish-main_program_start
-    print(colored("The program: {timer:.3f} seconds".format(timer=main_program_time), 'red'))
+    print("\nThe PROGRAM: [{timer:.3f} seconds]".format(timer=main_program_time))

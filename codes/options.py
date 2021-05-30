@@ -15,7 +15,7 @@ class Options():
         self.initialized = False
 
     def initialize(self, parser):
-        ''' set up arguments ''' 
+        ''' set up arguments '''
         parser.add_argument('--resume', action='store_true')
         parser.add_argument('--exp_name', type = str, default='LSGD')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints')
@@ -23,8 +23,8 @@ class Options():
         parser.add_argument('--cur_group', default=0, type=int)
         parser.add_argument('--num_groups', default=1, type=int)
         parser.add_argument('--datadir', type = str, default='./dataset', help='data')
-        parser.add_argument('--dataset', type = str, default='mnist', help='dataset')
-        parser.add_argument('--model', type = str, default='lenet')
+        parser.add_argument('--dataset', type = str, default='cifar10', help='dataset')
+        parser.add_argument('--model', type = str, default='resnet20')
 
         parser.add_argument('--use_epochs', action='store_true') 
         parser.add_argument('--epochs', type = int, default=5)
@@ -35,8 +35,7 @@ class Options():
 
         parser.add_argument('--batch_size', type = int, default=128)
         parser.add_argument('--lr', type = float, default=0.01)
-        parser.add_argument('--lr_aug', action='store_true')
-        parser.add_argument('--lr_coe', type = float, default=1)
+        parser.add_argument('--lr_lin', action='store_true')
         parser.add_argument('--lr_pow', action='store_true')
 
         parser.add_argument('--lr_decay', action='store_true')
@@ -54,8 +53,16 @@ class Options():
         parser.add_argument('--distributed', default=True, action='store_true')
         parser.add_argument('--dist_optimizer', type = str, default="lsgd")
 
-        parser.add_argument('--c1', type = float, default=0.5)  
-        parser.add_argument('--c2', type = float, default=0.5)  
+        parser.add_argument('--c1', type = float, default=0.1, help='local pulling strength')
+        parser.add_argument('--c2', type = float, default=0.1, help='global pulling strength')
+        parser.add_argument('--p1', type = float, default=0.1, help='PPA local pulling strength')
+        parser.add_argument('--p2', type = float, default=0.1, help='PPA global PPA pulling strength')
+        parser.add_argument('--no_prox', default=False, action='store_true')
+
+        parser.add_argument('--alpha', type = float, default=0.9, help='exponential moving averaging')
+        parser.add_argument('--gamma', type = float, default=0.9, help='x to mu pulling strength')
+        parser.add_argument('--etagamma', type = float, default=0.99, help='SGLD step size')
+        parser.add_argument('--weight_averaging', default=False, action='store_true')
 
         parser.add_argument('--num_gpus', default=4, type=int)
         parser.add_argument('--dist_ip', default="216.165.115.98", type=str)
@@ -66,7 +73,8 @@ class Options():
         parser.add_argument('--l_comm', default=256, type=int)
         parser.add_argument('--g_comm', default=256, type=int)
         parser.add_argument('--avg_size', default= 10, type=int)
-
+        
+        parser.add_argument('--landscape',  action='store_true')
         parser.add_argument('--suffix', default='', type=str) # additional parameters
         
         self.initialized = True
@@ -100,7 +108,7 @@ class Options():
 
         # save to the disk
         expr_dir = os.path.join(args.checkpoints_dir, args.exp_name)
-        utils.mkdirs(expr_dir)
+        utils.mkdirs(expr_dir) # first remove existing directory and then create a new one
         file_name = os.path.join(expr_dir, 'args.txt')
         with open(file_name, 'wt') as args_file:
             args_file.write(message)
@@ -115,14 +123,27 @@ class Options():
             suffix = ('_' + args.suffix.format(**vars(args))) if args.suffix != '' else ''
             args.exp_name = args.exp_name + suffix
         
-        if args.g_comm < args.l_comm:
-            warnings.warn("global communication period is shorter than local ones")
-
         # reset options
+        if args.g_comm < args.l_comm:
+            raise ValueError('global communication period is shorter than local ones')
+        elif args.num_groups == 1 or args.g_comm == args.l_comm:
+            args.is_lcomm = False
+            args.l_comm = args.g_comm
+            print("[ONLY global leader is activated!]")
+        else:
+            args.is_lcomm = True
+
         if args.dataset.lower() == 'cifar' or args.dataset.lower() == 'cifar10':
-            args.model = 'cnn7'
+            args.dataset = 'CIFAR10'
+        elif args.dataset.lower() == 'imagenet':
+            args.dataset = 'ImageNet'
         else:
             raise ValueError("wrong dataset name!")
+
+        assert not (args.lr_lin and args.lr_pow)
+        assert args.dist_optimizer in ['EASGD', 'LSGD'], 'No such distributed optimizer supported'
+        if not args.dist_optimizer == 'LSGD':
+            args.no_prox = True
 
         self.print_argsions(args)
         self.args = args
