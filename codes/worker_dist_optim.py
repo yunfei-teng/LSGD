@@ -201,8 +201,6 @@ class WorkerDistOptim(WorkerBase):
         elif self.args.dist_optimizer == 'EASGD':
             test_loss, test_error = self.dist_easgd_test()
 
-        # not necessary but for safety we'd better zero out the distributed tensors
-        self.dist_params_tensor.zero_()
         return test_loss, test_error
 
     # -----------------------------
