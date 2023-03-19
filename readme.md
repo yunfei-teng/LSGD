@@ -1,6 +1,6 @@
 # Leader Stochastic Gradient Descent [**[LSGD Blog]**](https://yunfei-teng.github.io/LSGD-Blog/)
 
-This is the code repository for paper [*Leader Stochastic Gradient Descent for Distributed Training of Deep Learning Models*](https://arxiv.org/abs/1905.10395).
+This is the code repository for paper [*Leader Stochastic Gradient Descent for Distributed Training of Deep Learning Models*](https://arxiv.org/abs/1905.10395). 
 
 ## Requirements
 PyTorch from [official website](https://pytorch.org). This is one of the most popular deep learning tools.
@@ -36,7 +36,7 @@ The advantage of using `queue` is that: (1) the number of request the local serv
 For each local server, the global server creates a thread for listening and responding to it. All the threads share a iteration counter which stores the total number of iterations of all workers after the last communication. Again, the data structure of iteration counter is a *queue* instead of a number or a single-value tensor as there is a chance that two or more threads can modify the value simutaneously. Althout due to *Global Interpreter Lock* the conflicts should not happen, in practice I found using *queue* is safer.
 ![](docs/dist_global.png)
 
-Each Node/Cluster/DevBox is usually provided with 4 GPUs (workers). We call all GPUs (workers) in the same Node/Cluster/DevBox as a group.
+Each Node/Cluster/DevBox is usually provided with 4/8/16 GPUs (workers). We call all GPUs (workers) in the same Node/Cluster/DevBox as a group.
 
 ## Discussion
 
@@ -49,4 +49,4 @@ For communication period, this depends on the network condition. Our lab is usin
 One dilemma for distributed training is to deal with running mean and running variance of [batch normalization](https://arxiv.org/abs/1502.03167). Based on our knowledge, there is no perfect solution to synchronize running mean and running variance especially for asynchronous communication so far. Usually, when synchronizing we can ignore running mean and running variance so that each model (worker) keeps their own statistics. In our implementation, we average both running mean and running variance of all workers for every commumication period (As a side note, for PyTorch 1.0 version, synchronizing the empty tensors will cause an error, so make sure to comment out the parts of synchronizing the buffers).
 
 #### Feedback
-The codes were developed when PyTorch first officially released its distributed training library (I believe it was roughly PyTorch 1.0 version). Since no refernce was available to me and I had to develope everything from scrath, there might be potential issues in the codes I haven't discovered yet due to the limitation of my knowledge. Feedbacks and questions are welcome!
+The codes were developed when PyTorch first officially released its distributed training library. There might be potential issues in the codes I haven't discovered yet due to the limitation of my knowledge. Feedbacks and questions are welcome!
