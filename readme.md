@@ -1,8 +1,6 @@
-# Leader Stochastic Gradient Descent
-This is the code repository for paper [*Leader Stochastic Gradient Descent for Distributed
-Training of Deep Learning Models*](https://arxiv.org/abs/1905.10395).
+# Leader Stochastic Gradient Descent [**[LSGD Blog]**](https://yunfei-teng.github.io/LSGD-Blog/)
 
-A Blog which carefully described the algorithm could be found at [**[LSGD Blog]**](https://yunfei-teng.github.io/LSGD-Blog/).
+This is the code repository for paper [*Leader Stochastic Gradient Descent for Distributed Training of Deep Learning Models*](https://arxiv.org/abs/1905.10395).
 
 ## Requirements
 PyTorch from [official website](https://pytorch.org). This is one of the most popular deep learning tools.
